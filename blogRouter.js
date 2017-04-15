@@ -39,7 +39,7 @@ router.post('/', jsonParser, (req, res) => {
 router.delete('/:id', (req, res) => {
   BlogPosts.delete(req.params.id);
   console.log(`Deleted Blog Post item \`${req.params.id}\``);
-  res.status(200).end();
+  res.status(204).end();
 });
 
 // Put Section
