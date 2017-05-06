@@ -7,6 +7,10 @@ const jsonParser = bodyParser.json();
 
 const {BlogPosts} = require('./models');
 
+//Schema
+const {Posts} = require('./models/posts');
+
+
 const app = express();
 
 BlogPosts.create("Blog Post 1", "Sample Post 1", "Adam", 2017);
@@ -17,7 +21,12 @@ BlogPosts.create("Blog Post 4", "Sample Post 4", "Adam", 2017);
 
 // Get Section
 router.get('/', (req, res) => {
-  res.json(BlogPosts.get());
+    Posts
+    .find()
+    .exec()
+    .then(data => {
+      res.status(200).json(data);
+    });
 });
 
 // Post Section
@@ -31,14 +40,29 @@ router.post('/', jsonParser, (req, res) => {
       return res.status(400).send(message);
     }
   }
-  const item = BlogPosts.create(req.body.title, req.body.content, req.body.author);
-  res.status(201).json(item);
+
+  Posts
+    .create({
+      title: req.body.title,
+      content: req.body.content,
+      author: {
+        firstName: req.body.author.firstName,
+        lastName: req.body.author.lastName
+      }
+    })
+    .then(
+      data => res.status(201).json(data))
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Something went wrong'});
+    });
 });
+
 
 // Delete Section
 router.delete('/:id', (req, res) => {
   BlogPosts.delete(req.params.id);
-  console.log(`Deleted Blog Post item \`${req.params.id}\``);
+  console.log(`Deleted rsBlog Post item \`${req.params.id}\``);
   res.status(204).end();
 });
 
@@ -61,13 +85,29 @@ router.put('/:id', jsonParser, (req, res) => {
     return res.status(400).send(message);
   }
   console.log(`Updating blog post \`${req.params.id}\``);
-  const updatedItem = BlogPosts.update({
-    id: req.params.id,
-    title: req.body.title,
-    content: req.body.content,
-    author: req.body.author
+
+  const toUpdate = {author:{}};
+  const updateableFields = ['title', 'content'];
+  const authorUpdateableFields = ['lastName', 'firstName'];
+
+  updateableFields.forEach(field => {
+    if (field in req.body) {
+      toUpdate[field] = req.body[field];
+    }
   });
-  res.status(200).json(updatedItem);
+
+  authorUpdateableFields.forEach(field => {
+    if (field in req.body.author) {
+      toUpdate.author[field] = req.body.author[field];
+    }
+  });
+
+  Posts
+    // all key/value pairs in toUpdate will be updated -- that's what `$set` does
+    .findByIdAndUpdate(req.params.id, {$set: toUpdate})
+    .exec()
+    .then(data => res.status(204).end())
+    .catch(err => res.status(500).json({message: 'Internal server error'}));
 });
 
 module.exports = router;

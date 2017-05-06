@@ -95,8 +95,6 @@ describe('Blog', function() {
         res.should.have.status(204);
       });
   });
-
-
 });
 
 

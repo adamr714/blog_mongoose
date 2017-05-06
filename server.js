@@ -1,32 +1,41 @@
 
 const express = require('express');
+const mongoose = require('mongoose');
+const app = express();
+const blogPostRouter = require('./blogRouter');
+const {PORT, DATABASE_URL} = require('./config');
 const morgan = require('morgan');
 
-const app = express();
+const {Posts} = require('./models')
 
-const blogPostRouter = require('./blogRouter');
+mongoose.Promise = global.Promise;
 
 // log the http layer
 app.use(morgan('common'));
 
 app.use('/blog-posts', blogPostRouter);
 
+
 // both runServer and closeServer need to access the same
 // server object, so we declare `server` here, and then when
 // runServer runs, it assigns a value.
 let server;
 
-// this function starts our server and returns a Promise.
-// In our test code, we need a way of asynchronously starting
-// our server, since we'll be dealing with promises there.
-function runServer() {
-  const port = process.env.PORT || 8080;
+function runServer(databaseUrl=DATABASE_URL, port=PORT) {
   return new Promise((resolve, reject) => {
-    server = app.listen(port, () => {
-      console.log(`Your app is listening on port ${port}`);
-      resolve(server);
-    }).on('error', err => {
-      reject(err)
+    mongoose.connect(databaseUrl, err => {
+      if (err) {
+        return reject(err);
+      }
+
+      server = app.listen(port, () => {
+        console.log(`Your app is listening on port ${port}`);
+        resolve();
+      })
+      .on('error', err => {
+        mongoose.disconnect();
+        reject(err);
+      });
     });
   });
 }
