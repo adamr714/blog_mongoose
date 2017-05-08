@@ -6,8 +6,6 @@ const blogPostRouter = require('./blogRouter');
 const {PORT, DATABASE_URL} = require('./config');
 const morgan = require('morgan');
 
-const {Posts} = require('./models')
-
 mongoose.Promise = global.Promise;
 
 // log the http layer

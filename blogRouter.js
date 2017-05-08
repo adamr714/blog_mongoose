@@ -5,19 +5,11 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
-const {BlogPosts} = require('./models');
-
 //Schema
 const {Posts} = require('./models/posts');
 
 
 const app = express();
-
-BlogPosts.create("Blog Post 1", "Sample Post 1", "Adam", 2017);
-BlogPosts.create("Blog Post 2", "Sample Post 2", "Adam", 2017);
-BlogPosts.create("Blog Post 3", "Sample Post 3", "Adam", 2017);
-BlogPosts.create("Blog Post 4", "Sample Post 4", "Adam", 2017);
-
 
 // Get Section
 router.get('/', (req, res) => {
@@ -60,11 +52,25 @@ router.post('/', jsonParser, (req, res) => {
 
 
 // Delete Section
+// router.delete('/:id', (req, res) => {
+//   BlogPosts.delete(req.params.id);
+//   console.log(`Deleted rsBlog Post item \`${req.params.id}\``);
+//   res.status(204).end();
+// });
+
 router.delete('/:id', (req, res) => {
-  BlogPosts.delete(req.params.id);
-  console.log(`Deleted rsBlog Post item \`${req.params.id}\``);
-  res.status(204).end();
+  Posts
+    .findByIdAndRemove(req.params.id)
+    .exec()
+    .then(() => {
+      res.status(204).json({message: 'success'});
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({error: 'something went terribly wrong'});
+    });
 });
+
 
 // Put Section
 router.put('/:id', jsonParser, (req, res) => {
