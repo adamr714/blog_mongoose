@@ -12,13 +12,15 @@ const {Posts} = require('./models/posts');
 const app = express();
 
 // Get Section
-router.get('/', (req, res) => {
-    Posts
-    .find()
-    .exec()
-    .then(data => {
-      res.status(200).json(data);
-    });
+router.get('/', async (req, res) => {
+//     Posts
+//     .find()
+//     .exec()
+//     .then(data => {
+//       res.status(200).json(data);
+//     });
+  let data = await Posts.find().exec();
+  res.status(200).json(data);
 });
 
 // Post Section
